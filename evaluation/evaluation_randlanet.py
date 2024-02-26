@@ -1,5 +1,7 @@
 import numpy as np
 import json
+from sklearn.metrics import confusion_matrix
+
 data = json.load( open( "essen_aerial_predicted.json" ) )  
     # Sample ground truth and predicted arrays
 #print(data.keys())
@@ -56,7 +58,6 @@ iou = intersection / union
 
 # Calculate IoU for each class (excluding label 0)
 iou_per_class = [0]
-weighted_iou_per_class= [0]
 for j in range(1, max(gt_array_filtered)+1):
     print(j)
     gt_mask = (gt_array_filtered == j)
@@ -65,19 +66,23 @@ for j in range(1, max(gt_array_filtered)+1):
     union = np.sum(np.logical_or(gt_mask, pred_mask))
     class_iou = intersection / union if union > 0 else 0
     iou_per_class.append(class_iou)
-    
-print(iou_per_class, ce_label_weights)
-weighted_iou = np.sum(np.array(iou_per_class) * normalized_weights)
 
+mean_iou = np.mean(iou_per_class)
+
+conf_matrix = confusion_matrix(data["label"], data["pred"])
+print(conf_matrix)
+# Convert to percentages
+conf_matrix_percent = conf_matrix.astype('float') / conf_matrix.sum(axis=1)[:, np.newaxis] * 100
+conf_matrix_percent_excluding_class0 = conf_matrix_percent[1:, 1:]
 result_dict = {
     "points_per_class": points_per_class,
     "weights": normalized_weights,
     "accuracy" : accuracy,
     "accuracy_per_class" : accuracy_per_class,
-    "weighted_accuracy" : weighted_accuracy,
     "iou" : iou,
     "iou_per_class": iou_per_class,
-    "weighted_iou": weighted_iou
+    "meanIoU": mean_iou,
+    "matrix": conf_matrix_percent_excluding_class0.tolist()
 }
 
 # Save the dictionary to a JSON file

@@ -29,11 +29,11 @@ v.set_lut("labels", lut)
 v.set_lut("pred", lut)
 
 
-predictions = json.load( open("") )  # Load pedictions 
-
-# In the most predictions, we not saved the point to save disk memory, then the points have to included like this:
-points = np.load('/test/test_grid.npy')[:,:3]
-
-data = {"points": np.array(points.astype(np.float32)), "labels": predictions["label"], "feat": None, "pred": predictions["pred"],
+# Load the point clod:
+pcd = np.load('/test/test_grid.npy')
+points = pcd[:,:3]
+labels= pcd[:,3].astype(np.float32) 
+features = pcd[:,4].astype(np.int32)
+data = {"points": np.array(points.astype(np.float32)), "labels": labels, "feat": features,
          "name": "essen" }
 v.visualize([data])
